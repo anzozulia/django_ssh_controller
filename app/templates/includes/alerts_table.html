@@ -1,0 +1,28 @@
+{% load adminlte_helpers i18n %}
+
+<table class="table">
+    <thead>
+        <tr>
+            <th style="width: 40px">{% trans 'Type' %}</th>
+            <th>{% trans 'Metric' %}</th>
+            <th>{% trans 'Condition' %}</th>
+            <th>{% trans 'Value' %}</th>
+            <th style="width: 1%; white-space: nowrap;">/</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for alert in alerts %}
+            <tr id="alert_{{ alert.pk }}_row">
+                <td><span class="badge btn-{% if alert.type == 'critical' %}danger{% elif alert.type == 'warning' %}warning{% else %}success{% endif %} {% if alert.status %}blink{% endif %}">
+                    {{ alert.type_text }}
+                </span></td>
+                <td>{{ alert.metric_text }}</td>
+                <td>{{ alert.condition_text }}</td>
+                <td>{{ alert.value_text }}</td>
+                <td>
+                  <i class="fa fa-trash" aria-hidden="true" style="color: red; cursor: pointer;" onclick="deleteAlert({{ alert.pk }});"></i>
+                </td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>

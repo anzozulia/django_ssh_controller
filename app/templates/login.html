@@ -1,0 +1,53 @@
+{% load adminlte_helpers i18n %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% trans 'Login' %}</title>
+
+  {% include 'adminlte/lib/_styles.html' %}
+
+</head>
+<body class="hold-transition login-page">
+<div class="login-box">
+  <div class="login-logo">
+    {% trans 'SSH Monitor' %}
+  </div>
+  <div class="card">
+    <div class="card-body">
+      {% for error in form.non_field_errors %}
+        <b><h style="color: gray;">{{error}}</h></b>
+        <hr>
+      {% endfor %}
+      <form role="form" method="POST" action="">
+        <fieldset>
+            {% csrf_token %}
+            <div class="input-group mb-3">
+              {{ form.username }}
+              <div class="input-group-append">
+                <div class="input-group-text">
+                  <span class="fas fa-user"></span>
+                </div>
+              </div>
+            </div>
+            <div class="input-group mb-3">
+              {{ form.password }}
+              <div class="input-group-append">
+                <div class="input-group-text">
+                  <span class="fas fa-lock"></span>
+                </div>
+              </div>
+            </div>
+            <input type="hidden" name="next" value="{% url 'app:dashboard' %}">
+            <button type="submit" class="btn btn-primary btn-block">{% trans 'Login' %}</button>
+        </fieldset>
+      </form>
+    
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

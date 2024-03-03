@@ -1,0 +1,33 @@
+version: '3'
+
+services:
+    db:
+        container_name: ssh_controller_db
+        image: postgres:15
+        restart: unless-stopped
+        volumes:
+            - ./docker/db:/var/lib/postgresql/data
+        environment:
+            - POSTGRES_DB=ssh_controller_db
+            - POSTGRES_USER=ssh_controller
+            - POSTGRES_PASSWORD=12345678
+
+    ssh_controller:
+        container_name: ssh_controller
+        build: .
+        restart: unless-stopped
+        command: python manage.py runserver 0.0.0.0:8000
+        volumes:
+            - .:/code
+        ports:
+            - "8930:8000"
+        environment:
+            - DOCKER=True
+            - DEBUG=False
+            - DOMAIN=<your_domain_for_allowed_hosts>
+
+            - POSTGRES_DB=ssh_controller_db
+            - POSTGRES_USER=ssh_controller
+            - POSTGRES_PASSWORD=12345678
+        depends_on:
+            - db

@@ -1,0 +1,200 @@
+{% load adminlte_helpers i18n %}
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+  {% block beforehead %}{% endblock %}
+  {% block title_outer %}
+      <title>{% block title %}{{ site.name }}{% endblock %}</title>
+  {% endblock %}
+
+  {% block meta %}
+      <meta charset="utf-8">
+      <meta http-equiv="X-UA-COMPATIBLE" content="IE=edge">
+      <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+  {% endblock %}
+
+  {% block stylesheets %}
+      <link href="{% static 'css/morris.css' %}" rel="stylesheet">
+
+      <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/morris.js/0.5.1/morris.css">
+      <link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
+      <link href="{% static 'css/ssh_controller.css' %}" rel="stylesheet">
+
+      <style>
+        ::-webkit-scrollbar {
+          width: 7px;
+        }
+    
+        ::-webkit-scrollbar-track {
+          background: #f1f1f1;
+          border-radius: 10px;
+        }
+    
+        ::-webkit-scrollbar-thumb {
+          background: #888;
+          border-radius: 10px;
+        }
+    
+        ::-webkit-scrollbar-thumb:hover {
+          background: #555;
+        }
+      </style>
+
+      {% include 'adminlte/lib/_styles.html' %}
+      {% block style_sheets %}{% endblock %}
+  {% endblock %}
+
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="hold-transition sidebar-mini sidebar-open {% block body_class %}{% block bodyclass %}layout-fixed {% endblock %}{% endblock %}">
+
+{% block body %}
+    <div class="wrapper">
+      <nav class="main-header navbar navbar-expand navbar-white navbar-light">
+        <ul class="navbar-nav ml-auto">
+          <li class="nav-item dropdown">
+            {% get_current_language as LANGUAGE_CODE %}
+            {% get_available_languages as LANGUAGES %}
+            {% get_language_info_list for LANGUAGES as languages %}
+            <img src="{% static 'images/flags/' %}{{ LANGUAGE_CODE }}.svg" style="margin-top: 5px; margin-right: 1rem; height: 30px; border-radius: 5px; border: 1px solid #555; cursor: pointer;" data-toggle="dropdown">
+            <div class="dropdown-menu" style="left: inherit; right: 0px;">
+              {% for language in languages %}
+                <div onclick="selectLangOption({{ forloop.counter0 }});" class="dropdown-item {% if language.code == LANGUAGE_CODE %}active{% endif %}" style="cursor: pointer;">
+                  <img src="{% static 'images/flags/' %}{{ language.code }}.svg" style="margin-right: 0.5rem; height: 30px; border-radius: 5px; border: 1px solid #555">
+                  {{ language.name_local }}
+                </div>
+              {% endfor %} 
+            </div>
+          </li>
+          <form hidden id="langform"action="{% url 'set_language' %}" method="post">
+            {% csrf_token %}
+            <input name="next" type="hidden" value="{{ redirect_to }}">
+            <select id="langselect" style="border-radius: 0" class="custom-select" name="language">
+                {% for language in languages %}
+                    <option value="{{ language.code }}"></option>
+                {% endfor %}
+            </select>
+          </form>
+          <li class="nav-item">
+            <form method="post" action="{% url 'app:logout' %}?next={% url 'app:login' %}" id="logoutForm">
+                {% csrf_token %}
+                <a class="nav-link pointer" data-widget="fullscreen" onclick="$('#logoutForm').submit();"><i class="fas fa-power-off"></i></a>
+            </form>
+          </li>
+        </ul>
+      </nav>
+
+        <aside class="main-sidebar sidebar-dark-primary elevation-4">
+          <a href="{% url 'app:dashboard' %}" class="brand-link">
+            <span class="brand-text font-weight-light"><strong style="margin-left: 20px;">{% trans 'SSH Monitor' %}</strong></span>
+          </a>
+      
+          <div class="sidebar">
+            <nav class="mt-2">
+              <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+                
+                <li class="nav-item">
+                  <a href="{% url 'app:dashboard' %}" class="nav-link main_tab">
+                    <i class="nav-icon fas fa-tachometer-alt"></i>
+                    <p>{% trans 'Dashboard' %}</p>
+                  </a>
+                </li>
+                
+                <li class="nav-item menu-open">
+                  <ul class="nav nav-treeview">
+                    {% for db_server in servers %}
+                      <li class="nav-item">
+                        <a href="{% url 'app:server_inspect' db_server.pk %}" class="nav-link {% if server == db_server %}active{% endif %}">
+                          {% if db_server.status == "critical" %}
+                            <i class="fas fa-exclamation-circle nav-icon ml-2" style="color: #dc3545;"></i>
+                          {% elif db_server.status == "warning" %}
+                            <i class="fas fa-exclamation-circle nav-icon ml-2" style="color: #ffc107;"></i>
+                          {% else %}
+                            <i class="fas fa-check-circle nav-icon ml-2" style="color: #28a745;"></i>
+                          {% endif %}
+                        <p>{{ db_server.hostname }}</p>
+                        {% if server == db_server %}
+                          <i class="right fas fa-angle-right"></i>
+                        {% endif %}
+                        </a>
+                      </li>
+                    {% endfor %}
+                  </ul>
+                </li>
+                
+                <li class="nav-item">
+                  <a href="{% url 'app:add_server' %}" class="nav-link main_tab">
+                    <i class="nav-icon fas fa-plus"></i>
+                    <p>{% trans 'New server' %}</p>
+                  </a>
+                </li>
+
+                <li class="nav-item">
+                  <a href="{% url 'app:settings' %}" class="nav-link main_tab">
+                    <i class="nav-icon fas fa-cog"></i>
+                    <p>{% trans 'Settings' %}</p>
+                  </a>
+                </li>
+              </ul>
+            </nav>
+          </div>
+        </aside>
+
+        {% block content_wrapper %}
+        <div class="content-wrapper">
+            {% block content_header %}
+                
+            {% endblock %}
+
+            {% block content_outer %}
+            <section class="content">
+                {% block messages %}
+                    {% include 'adminlte/lib/_messages.html' %}
+                {% endblock %}
+
+                {% block content %}{% endblock %}
+            </section>
+            {% endblock %}
+
+        </div>
+        {% endblock content_wrapper %}
+        
+    </div>
+{% endblock body %}
+
+{% block javascript %}
+
+{% include 'adminlte/lib/_scripts.html' %}
+
+<script src="{% static 'js/morris.min.js' %}"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/raphael/2.1.0/raphael-min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/morris.js/0.5.1/morris.min.js"></script>
+<script src="{% static 'js/Chart.js' %}"></script>
+<script src="{% static 'js/bootstrap-switch.js' %}"></script>
+<script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+{% block js %}
+{% endblock %}
+
+<script>
+
+  function selectLangOption(index){ 
+    document.getElementById("langselect").options.selectedIndex = index;
+    document.getElementById("langform").submit();
+  }
+
+  var url = window.location;
+  var index = "{% url 'app:add_server' %}".split('/').indexOf("add_server") + 2;
+  $('ul.nav-sidebar a.main_tab').filter(function () {   
+    return this.href.split('?')[0].split('/')[index] == url.href.split('?')[0].split('/')[index];
+  }).addClass('active');
+</script>
+
+
+{% endblock %}
+
+{% block extra_foot %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% load adminlte_helpers i18n %}
+{% load static %}
+
+{% block title %}
+{% trans 'Settings' %}
+{% endblock %}
+
+{% block content_header %}
+
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-1">
+            <div class="col-sm-10">
+                <h1 style="font-size: 200%;" class="m-0">{% trans 'Settings' %}</h1>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+<div class="row">
+
+    <div class="col-md-5">
+        <div class="card card-primary">
+            <form action="" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="card-body">
+                    <div class="row">
+                        {% for field in form %}
+                            <div class="col-md-12">
+                                <div class="form-group mb-3">
+                                    {% for err in field.errors %}
+                                    <div class="alert alert-danger" role="alert" style="margin-bottom: 0px;">
+                                        {{ err }}
+                                    </div>
+                                    {% endfor %}
+                                    {{ field.label_tag }} {{ field }}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="card-footer" style="margin-top: -20px;">
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="col-lg-7 connectedSortable ui-sortable">
+        <div class="card" id="history_card">
+          <div class="card-header ui-sortable-handle">
+              <h4 class="card-title mt-1">
+                  <i class="far fa-bell mr-2"></i> {% trans 'Default alerts' %}
+              </h4>
+              <div class="card-tools">
+                  <ul class="nav nav-pills ml-auto">
+                      <a class="nav-link active" href="{% url 'app:add_alert' 0 %}">{% trans 'Create' %}</a>
+                  </ul>
+              </div>
+          </div>
+          <div class="card-body p-0">
+              {% include 'includes/alerts_table.html' %}
+          </div>
+        </div>
+      </section>
+  
+</div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+
+$(".custom-file-input").on("change", function() {
+  var fileName = $(this).val().split("\\").pop();
+  $(this).siblings(".custom-file-label").addClass("selected").html(fileName);
+});
+
+function deleteAlert(pk) {
+  $.ajax({
+    type: 'POST',
+    url: '{% url 'app:delete_alert' %}',
+    data: { 
+      pk: pk,
+      csrfmiddlewaretoken: '{{ csrf_token }}' 
+    },
+  });
+  $("#alert_" + pk + "_row").remove();
+}
+
+</script>
+{% endblock %}

@@ -1,0 +1,38 @@
+.pointer {
+    cursor: pointer;
+}
+
+.fa-cog:hover {
+    transition: 0.5s;
+    color: gray!important;
+}
+
+.metrics_p {
+    font-size: 1.25em;
+    margin-top: 0.2em;
+    margin-bottom: 0;
+}
+
+.progress {
+    height: 8px!important;
+    border-radius: 4px!important;
+}
+
+.info-box {
+    border-radius: 0.5rem!important;
+}
+
+.info-box .info-box-number {
+    font-weight: unset!important;
+    font-size: 1.2em;
+}
+
+@keyframes blink {
+    20% { opacity: 1; }
+    50% { opacity: 0; }
+    80% { opacity: 1; }
+}
+
+.blink {
+    animation: blink 1.25s infinite;
+}

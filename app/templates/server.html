@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+{% load adminlte_helpers i18n %}
+{% load static %}
+
+{% block title %}
+{{ server.hostname }}
+{% endblock %}
+
+{% block content_header %}
+
+
+
+<section class="content">
+
+</section>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+
+    <div class="row">
+
+        <section class="col-lg-5 connectedSortable ui-sortable mt-3">
+          <div class="card">
+            <div class="card-body">
+              <div style="float:right; position: absolute; top: 12px; right: 12px; z-index: 100;">
+                <a href="{% url 'app:server_settings' server.pk %}">
+                  <i class="fa fa-cog pointer" style="font-size: 2em; color: lightgray;"></i>
+                </a>
+              </div>
+              <div class="row">
+                <div class="col-12">
+                  <p style="margin-bottom: 3px;" class="text-muted text-sm">{% trans 'Last check' %}: <b>{{ server.last_check }}</b></p>
+                  <h1 style="margin-bottom: 3px;">{{ server.hostname }}</h1>
+                </div>
+              </div>  
+              <hr>
+              <div class="row">
+                    <h3 class="mr-3 ml-2">{% trans 'Server monitoring' %}</h3>
+                    <input type="checkbox" {% if server.active %}checked{% endif %} name="server_active" onchange="toggle_monitor();" data-toggle="toggle" data-width="80" data-on="{% trans 'ON' %}" data-off="{% trans 'OFF' %}" data-onstyle="success" data-offstyle="danger" >
+              </div>  
+              <hr>
+              {% if server.live_metrics %}
+                {% if server.live_metrics.status == "success" %}
+                <div class="row">
+                  <div class="col-12">
+                    <h5>
+                      {% trans 'Uptime:' %} <b>{{ server.live_metrics.timespan_uptime }}</b>
+                    </h5>
+                    <h5>
+                      {% trans 'Idle:' %} <b>{{ server.live_metrics.timespan_idle }}</b>
+                    </h5>
+                    <hr>
+                    <span class="info-box-number">{% trans 'Load avg 1 min' %} ({{ server.live_metrics.load_1m }})</span>
+                    <div class="progress mb-3">
+                        <div class="progress-bar bg-{{ server.system_style }}" style="width: {{ server.live_metrics.load_1m_int }}%;"></div>
+                    </div>
+                    <span class="info-box-number">{% trans 'RAM' %} ({{ server.live_metrics.mem_percent }}%)</span>
+                    <div class="progress mb-3">
+                        <div class="progress-bar bg-{{ server.memory_style }}" style="width: {{ server.live_metrics.mem_percent }}%;"></div>
+                    </div>
+                    <span class="info-box-number">{% trans 'Swap' %} ({{ server.live_metrics.swap_percent }}%)</span>
+                    <div class="progress mb-3">
+                        <div class="progress-bar bg-{{ server.swap_style }}" style="width: {{ server.live_metrics.swap_percent }}%;"></div>
+                    </div>
+                    <span class="info-box-number">{% trans 'Disk' %} ({{ server.live_metrics.disk_percent }}%)</span>
+                    <div class="progress">
+                        <div class="progress-bar bg-{{ server.disk_style }}" style="width: {{ server.live_metrics.disk_percent }}%;"></div>
+                    </div>
+                  </div>
+                </div>
+                <hr>
+                <div class="ui-sortable-handle">
+                  <div class="card-tools">
+                    <ul class="nav nav-pills ml-auto">
+                      <li class="nav-item">
+                        <a class="nav-link active" href="#load-tab" data-toggle="tab">{% trans 'Load' %}</a>
+                      </li>
+                      <li class="nav-item">
+                        <a class="nav-link" href="#memory-tab" data-toggle="tab">{% trans 'Memory' %}</a>
+                      </li>
+                      <li class="nav-item">
+                        <a class="nav-link" href="#disk-tab" data-toggle="tab">{% trans 'Disk' %}</a>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+                <div class="row mt-2">
+                  <div class="col-12">
+                    <div class="tab-content p-0">
+                      <div class="chart tab-pane active" id="load-tab" style="position: relative;">
+                        <p class="metrics_p">{% trans 'Load avg 1 min' %}: {{ server.live_metrics.load_1m }}</p>
+                        <p class="metrics_p">{% trans 'Load avg 5 min' %}: {{ server.live_metrics.load_5m }}</p>
+                        <p class="metrics_p">{% trans 'Load avg 15 min' %}: {{ server.live_metrics.load_15m }}</p>
+                      </div>
+                      <div class="chart tab-pane" id="memory-tab" style="position: relative;">
+                        <p class="metrics_p">{% trans 'Total RAM' %}: {{ server.live_metrics.bytesize_mem_total.mb }} MB</p>
+                        <p class="metrics_p">{% trans 'Free RAM' %}: {{ server.live_metrics.bytesize_mem_free.mb }} MB</p>
+                        <p class="metrics_p">{% trans 'Available RAM' %}: {{ server.live_metrics.bytesize_mem_available.mb }} MB</p>
+                        <p class="metrics_p">{% trans 'Used RAM' %}: {{ server.live_metrics.bytesize_mem_used.mb }} MB</p>
+                        <p class="metrics_p">{% trans 'Cached RAM' %}: {{ server.live_metrics.bytesize_mem_cached.mb }} MB</p>
+                        <p class="metrics_p mt-3">{% trans 'Swapfile' %}: {{ server.live_metrics.bytesize_swap_total.mb }} MB</p>
+                        <p class="metrics_p">{% trans 'Swapfile free' %}: {{ server.live_metrics.bytesize_swap_free.mb }} MB</p>
+                      </div>
+                      <div class="chart tab-pane" id="disk-tab" style="position: relative;">
+                        <p class="metrics_p">{% trans 'Disk size' %}: {{ server.live_metrics.bytesize_disk_size.gb_str }} GB</p>
+                        <p class="metrics_p">{% trans 'Disk available' %}: {{ server.live_metrics.bytesize_disk_available.gb_str }} GB</p>
+                        <p class="metrics_p">{% trans 'Disk used' %}: {{ server.live_metrics.bytesize_disk_used.gb_str }} GB</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                {% else %}
+                <div class="row">
+                  <div class="col-12">
+                    
+                    <div class="text-center">
+                      <h1 style="color: red;">
+                      {% if server.live_metrics.status == "ssh_error" %}
+                        {% trans 'SSH connection failed' %}
+                      {% else %}
+                        {% trans 'Host not responding' %}
+                      {% endif %}
+                      </h1>
+                    </div>
+                  </div>
+                </div>
+                {% endif %}
+              {% endif %}
+            </div>
+          </div>
+        </section>
+      
+        <section class="col-lg-7 connectedSortable ui-sortable mt-3">
+          <div class="card" id="history_card">
+            <div class="card-header ui-sortable-handle">
+                <h4 class="card-title mt-1">
+                    <i class="far fa-bell mr-2"></i> {% trans 'Alerting settings' %}
+                </h4>
+                <div class="card-tools">
+                    <ul class="nav nav-pills ml-auto">
+                        <a class="nav-link active" href="{% url 'app:add_alert' server.pk %}">{% trans 'Create' %}</a>
+                    </ul>
+                </div>
+            </div>
+            <div class="card-body p-0">
+              {% include 'includes/alerts_table.html' %}
+            </div>
+          </div>
+        </section>
+      
+      </div>
+
+</div>
+{% endblock %}
+
+{% block js %}
+
+<script>
+
+function toggle_monitor() { 
+  var elem_data = document.getElementsByName("server_active")[0].checked
+  $.ajax({
+    type: 'POST',
+    url: '{% url 'app:server_switch' server.pk %}',
+    data: { 
+      server_active : elem_data,
+      csrfmiddlewaretoken: '{{ csrf_token }}' 
+    },
+  });
+}
+
+function deleteAlert(pk) {
+  $.ajax({
+    type: 'POST',
+    url: '{% url 'app:delete_alert' %}',
+    data: { 
+      pk: pk,
+      csrfmiddlewaretoken: '{{ csrf_token }}' 
+    },
+  });
+  $("#alert_" + pk + "_row").remove();
+}
+
+</script>
+
+{% endblock %}
