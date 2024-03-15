@@ -169,4 +169,5 @@ if os.environ.get('DOCKER'):
 
     DEBUG = os.environ.get('DEBUG', False) == 'True'
 
-    ALLOWED_HOSTS.append(os.environ.get('DOMAIN'))
+    ALLOWED_HOSTS = [os.environ.get('DOMAIN')]
+    CSRF_TRUSTED_ORIGINS = ALLOWED_HOSTS

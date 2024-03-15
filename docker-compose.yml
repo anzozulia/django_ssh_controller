@@ -16,7 +16,7 @@ services:
         container_name: ssh_controller
         build: .
         restart: unless-stopped
-        command: python manage.py runserver 0.0.0.0:8000
+        command: python manage.py runserver 0.0.0.0:8000 --noreload
         volumes:
             - .:/code
         ports:

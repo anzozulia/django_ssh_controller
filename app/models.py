@@ -34,6 +34,7 @@ METRICS = {
     'load_5m': _('5 min load average'),
     'load_15m': _('15 min load average'),
     'mem_free': _('Free memory (MB)'),
+    'mem_available': _('Available memory (MB)'),
     'mem_used': _('Used memory (MB)'),
     'mem_cached': _('Cached memory (MB)'),
     'mem_percent': _('Memory utilization percent'),

@@ -29,7 +29,7 @@ def check_server(server, bot=None):
                 bot.send_message(Settings.load().tg_chat_id, metrics.error_text, parse_mode='markdown')
 
 def check_servers():
-    bot = telebot.TeleBot(Settings.load().tg_bot_token)
+    bot = telebot.TeleBot(Settings.load().tg_bot_token, threaded=False)
 
     # Server.objects.all().update(check_interval=3)
     for server in filter(lambda server: server.pending_for_check, Server.objects.filter(active=True)):
@@ -37,7 +37,7 @@ def check_servers():
         
 
 def run_scheduler():
-    schedule.every(5).seconds.do(check_servers)
+    schedule.every(10).seconds.do(check_servers)
 
     while True:
         try:
