@@ -86,6 +86,7 @@ class SingletonModel(models.Model):
 
 
 class Server(models.Model):
+    name = models.CharField(max_length=64, null=True, blank=True)
     hostname = models.CharField(max_length=64)
     user = models.CharField(max_length=64)
     port = models.IntegerField(default=22)
@@ -151,7 +152,7 @@ class Server(models.Model):
 
 
     def __str__(self):
-        return self.hostname
+        return self.name if self.name else self.hostname
     
 
 class ServerCheck(models.Model):
@@ -260,7 +261,7 @@ class ServerCheck(models.Model):
     @property
     def error_text(self):
         icon = '🔴'
-        text = f"{icon} **{self.server.hostname}** {icon}\n"
+        text = f"{icon} **{self.server}** {icon}\n"
         if self.status == 'ssh_error':
             text += "SSH connection failed"
         elif self.status == 'ping_error':
@@ -338,7 +339,7 @@ class AlertSettings(models.Model):
     @property
     def text(self):
         icon = '🔴' if self.type == 'critical' else '🟡'
-        text = f"{icon} **{self.server.hostname}** {icon}\n"
+        text = f"{icon} **{self.server}** {icon}\n"
         metric, unit = self.metric_text_split
         text += f"{metric} {CONDITION_SYMBOLS[self.condition]} {self.value_text()} {unit}"
         return text

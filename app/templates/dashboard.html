@@ -32,7 +32,7 @@
         <div class="info-box small-box shadow pointer" onclick="window.location.href = '{% url 'app:server_inspect' server.pk %}';">
             <div class="info-box-content">
                 <span class="info-box-text mb-1">
-                    <h3>{{ server.hostname }}</h3>
+                    <h3>{{ server }}</h3>
                 </span>
                 {% if server.live_metrics %}
                     {% if server.live_metrics.status == "success" %}

@@ -33,6 +33,7 @@ class ServerForm(forms.ModelForm):
     class Meta:
         model = Server
         fields = (
+            'name',
             'hostname',
             'user',
             'port',
@@ -86,6 +87,7 @@ class ServerSettingsForm(forms.ModelForm):
     class Meta:
         model = Server
         fields = (
+            'name',
             'hostname',
             'user',
             'port',
