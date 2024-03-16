@@ -16,7 +16,7 @@ class Login(LoginView):
 
 def dashboard(request):
     context = {
-        'servers': Server.objects.all(),
+        'servers': Server.objects.all().order_by('hostname'),
     }
     return render(request, 'dashboard.html', context)
 

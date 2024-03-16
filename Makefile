@@ -22,7 +22,7 @@ logs:
 	@docker-compose logs -f
 	
 migrations:
-	@docker-compose run --rm ssh_controller python ./manage.py makemigrations
+	@docker-compose run --rm ssh_controller python ./manage.py makemigrations app
 
 migrate:
 	@docker-compose run --rm ssh_controller python ./manage.py migrate

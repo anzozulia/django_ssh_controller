@@ -34,6 +34,7 @@ METRICS = {
     'load_5m': _('5 min load average'),
     'load_15m': _('15 min load average'),
     'mem_free': _('Free memory (MB)'),
+    'mem_available': _('Available memory (MB)'),
     'mem_used': _('Used memory (MB)'),
     'mem_cached': _('Cached memory (MB)'),
     'mem_percent': _('Memory utilization percent'),
@@ -65,6 +66,9 @@ TYPE = {
     'critical': _('Critical'),
 }
 
+CRITICAL_REPEAT_SECONDS = 3600 * 4
+WARNING_REPEAT_SECONDS = 3600 * 24
+
 class SingletonModel(models.Model):
     class Meta:
         abstract = True
@@ -85,6 +89,7 @@ class SingletonModel(models.Model):
 
 
 class Server(models.Model):
+    name = models.CharField(max_length=64, null=True, blank=True)
     hostname = models.CharField(max_length=64)
     user = models.CharField(max_length=64)
     port = models.IntegerField(default=22)
@@ -150,7 +155,7 @@ class Server(models.Model):
 
 
     def __str__(self):
-        return self.hostname
+        return self.name if self.name else self.hostname
     
 
 class ServerCheck(models.Model):
@@ -259,7 +264,7 @@ class ServerCheck(models.Model):
     @property
     def error_text(self):
         icon = '🔴'
-        text = f"{icon} **{self.server.hostname}** {icon}\n"
+        text = f"{icon} **{self.server}** {icon}\n"
         if self.status == 'ssh_error':
             text += "SSH connection failed"
         elif self.status == 'ping_error':
@@ -280,6 +285,7 @@ class AlertSettings(models.Model):
     value = models.FloatField()
     type = models.CharField(max_length=64, choices=TYPE)
     status = models.BooleanField(default=False)
+    last_notification = models.DateTimeField(null=True, blank=True)
 
     def metric_text(self):
         return METRICS[self.metric]
@@ -321,11 +327,26 @@ class AlertSettings(models.Model):
         return False
     
     def status_check(self, metrics):
-        current_status = self.status
-        new_status = self.check_condition(metrics)
-        self.status = new_status
+        self.status = self.check_condition(metrics)
+
+        if self.status:
+            if self.type == 'critical':
+                if not self.last_notification or (now() - self.last_notification).seconds > CRITICAL_REPEAT_SECONDS:
+                    self.last_notification = now()
+                    notify = True
+                else:
+                    notify = False
+            elif self.type == 'warning':
+                if not self.last_notification or (now() - self.last_notification).seconds > WARNING_REPEAT_SECONDS:
+                    self.last_notification = now()
+                    notify = True
+                else:
+                    notify = False
+        else:
+            notify = False
+
         self.save()
-        return current_status != new_status, new_status
+        return notify, self.status
     
     @property
     def metric_text_split(self):
@@ -337,7 +358,7 @@ class AlertSettings(models.Model):
     @property
     def text(self):
         icon = '🔴' if self.type == 'critical' else '🟡'
-        text = f"{icon} **{self.server.hostname}** {icon}\n"
+        text = f"{icon} **{self.server}** {icon}\n"
         metric, unit = self.metric_text_split
         text += f"{metric} {CONDITION_SYMBOLS[self.condition]} {self.value_text()} {unit}"
         return text

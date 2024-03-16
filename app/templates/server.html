@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block title %}
-{{ server.hostname }}
+{{ server }}
 {% endblock %}
 
 {% block content_header %}
@@ -31,7 +31,7 @@
               <div class="row">
                 <div class="col-12">
                   <p style="margin-bottom: 3px;" class="text-muted text-sm">{% trans 'Last check' %}: <b>{{ server.last_check }}</b></p>
-                  <h1 style="margin-bottom: 3px;">{{ server.hostname }}</h1>
+                  <h1 style="margin-bottom: 3px;">{{ server }}</h1>
                 </div>
               </div>  
               <hr>
