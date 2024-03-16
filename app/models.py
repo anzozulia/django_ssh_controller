@@ -66,6 +66,9 @@ TYPE = {
     'critical': _('Critical'),
 }
 
+CRITICAL_REPEAT_SECONDS = 3600 * 4
+WARNING_REPEAT_SECONDS = 3600 * 24
+
 class SingletonModel(models.Model):
     class Meta:
         abstract = True
@@ -282,6 +285,7 @@ class AlertSettings(models.Model):
     value = models.FloatField()
     type = models.CharField(max_length=64, choices=TYPE)
     status = models.BooleanField(default=False)
+    last_notification = models.DateTimeField(null=True, blank=True)
 
     def metric_text(self):
         return METRICS[self.metric]
@@ -323,11 +327,26 @@ class AlertSettings(models.Model):
         return False
     
     def status_check(self, metrics):
-        current_status = self.status
-        new_status = self.check_condition(metrics)
-        self.status = new_status
+        self.status = self.check_condition(metrics)
+
+        if self.status:
+            if self.type == 'critical':
+                if not self.last_notification or (now() - self.last_notification).seconds > CRITICAL_REPEAT_SECONDS:
+                    self.last_notification = now()
+                    notify = True
+                else:
+                    notify = False
+            elif self.type == 'warning':
+                if not self.last_notification or (now() - self.last_notification).seconds > WARNING_REPEAT_SECONDS:
+                    self.last_notification = now()
+                    notify = True
+                else:
+                    notify = False
+        else:
+            notify = False
+
         self.save()
-        return current_status != new_status, new_status
+        return notify, self.status
     
     @property
     def metric_text_split(self):

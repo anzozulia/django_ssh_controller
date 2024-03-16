@@ -19,8 +19,8 @@ def check_server(server, bot=None):
 
     if metrics.status == 'success':
         for alert in server.alerts.all():
-            altered, status = alert.status_check(metrics)
-            if altered and status:
+            notify, status = alert.status_check(metrics)
+            if notify and status:
                 if Settings.load().tg_alerts and bot:
                     bot.send_message(Settings.load().tg_chat_id, alert.text, parse_mode='markdown')
     else:
